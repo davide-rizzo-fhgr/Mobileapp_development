@@ -6,7 +6,7 @@ Studierende mit eigenem Haushalt kaufen regelmässig Lebensmittel ein, verlieren
 
 Die zentrale Frage lautet:
 
-> Was sollte ich als Nächstes aufbrauchen?
+Was sollte ich als Nächstes aufbrauchen?
 
 ## Zielgruppe
 
@@ -60,7 +60,7 @@ Das Mindesthaltbarkeitsdatum dient zur Orientierung. Die App beurteilt nicht, ob
 
 Der GUI-Entwurf wird in Figma erstellt und zeigt den geplanten Aufbau sowie die Navigation der Anwendung.
 
-**Figma-Link:** Link
+**Figma-Link:** https://www.figma.com/proto/etExXKJu7YXEuGe7R39ObV/Restlos_Figma?node-id=14-6&p=f&t=cBrfW0xAYGfpifem-1&scaling=min-zoom&content-scaling=fixed&page-id=2%3A3&starting-point-node-id=14%3A6
 
 ### Simulierte Interaktionen
 
