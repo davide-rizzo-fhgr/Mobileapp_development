@@ -1,10 +1,8 @@
 # Restlos
 
-Konzept – Semesterprojekt Mobile Web Development
-
 ## Problem
 
-Studierende mit eigenem Haushalt kaufen regelmässig Lebensmittel ein, verlieren aber im Alltag den Überblick über den eigenen Vorrat. Produkte geraten in Vergessenheit, bis das Mindesthaltbarkeitsdatum (MHD) bereits überschritten ist.
+Studierende mit eigenem Haushalt kaufen regelmässig Lebensmittel ein, verlieren aber im Alltag den Überblick über den eigenen Vorrat. Produkte geraten in Vergessenheit, bis das Mindesthaltbarkeitsdatum bereits überschritten ist.
 
 Die zentrale Frage lautet:
 
@@ -12,15 +10,15 @@ Die zentrale Frage lautet:
 
 ## Zielgruppe
 
-Studierende mit eigenem Haushalt – in einer WG oder eigenen Wohnung –, die selbstständig einkaufen und kochen. Sie haben ihr Smartphone griffbereit, aber wenig Zeit und Geduld für eine aufwendige Verwaltung ihres Vorrats.
+Studierende mit eigenem Haushalt, in einer WG oder eigenen Wohnung, die selbstständig einkaufen und kochen. Sie haben ihr Smartphone griffbereit, aber wenig Zeit und Geduld für eine aufwendige Verwaltung ihres Vorrats.
 
 ## Nutzen
 
 Restlos soll einen schnellen, verlässlichen Überblick über den vorhandenen Vorrat schaffen und zeigen, welche Produkte als Nächstes aufgebraucht werden sollten.
 
-Damit soll die App helfen, vergessene Lebensmittel und unnötige Lebensmittelverschwendung zu reduzieren – ohne Barcode-Scanning, Login oder Cloud-Synchronisation.
+Damit soll die App helfen, vergessene Lebensmittel und unnötige Lebensmittelverschwendung zu reduzieren, ohne Barcode-Scanning, Login oder Cloud-Synchronisation.
 
-## Geplanter Funktionsumfang (MVP)
+## Geplanter Funktionsumfang
 
 Die erste Version soll vollständig offline mit lokaler Datenspeicherung auf dem Gerät funktionieren.
 
