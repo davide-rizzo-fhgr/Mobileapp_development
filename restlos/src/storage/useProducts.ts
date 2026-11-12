@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Product } from "../types/Product";
-import { loadProducts } from "./productStorage";
+import { loadProducts, saveProducts } from "./productStorage";
 
 // Wie in den Folien: ein leerer State, danach asynchron laden.
 export function useProducts() {
@@ -40,5 +40,21 @@ export function useProducts() {
     void loadAtStart();
   }, []);
 
-  return { products, loading, ready, error, retry: load };
+  async function save(product: Product): Promise<boolean> {
+    if (!ready) return false;
+    const updated = products.some(item => item.id === product.id)
+      ? products.map(item => item.id === product.id ? product : item)
+      : [...products, product];
+    try {
+      await saveProducts(updated);
+      setProducts(updated);
+      setError(null);
+      return true;
+    } catch {
+      setError("Speichern fehlgeschlagen. Bitte versuche es erneut.");
+      return false;
+    }
+  }
+
+  return { products, loading, ready, error, retry: load, save };
 }

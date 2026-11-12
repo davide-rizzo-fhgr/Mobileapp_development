@@ -1,47 +1,41 @@
-import { StyleSheet, Text, View } from "react-native";
-import { Link } from "expo-router";
+import { router } from "expo-router";
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Action, BottomNav, colors, Notice, ProductCard } from "../components/UI";
+import { useProducts } from "../storage/useProducts";
 
-export default function VorratScreen() {
+// Eine einfache Liste. Suche und Filter kommen in Commit 5 dazu.
+export default function PantryScreen() {
+  const { products, loading, error, retry } = useProducts();
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>Dein Vorrat</Text>
-
-      <Text style={styles.description}>
-        Hier erscheinen später deine Lebensmittel.
-      </Text>
-
-      <Link href="/produktdetails" style={styles.link}>
-        Beispielprodukt ansehen
-      </Link>
-    </View>
+    <SafeAreaView style={styles.page}>
+      <View style={styles.content}>
+        <Text style={styles.heading}>Dein Vorrat</Text>
+        <Text style={styles.count}>{products.length} Produkte</Text>
+        {loading ? (
+          <ActivityIndicator color={colors.primary} style={{ flex: 1 }} />
+        ) : (
+          <FlatList
+            data={products}
+            keyExtractor={(product) => product.id}
+            contentContainerStyle={styles.list}
+            renderItem={({ item }) => <ProductCard product={item} />}
+            ListEmptyComponent={<Text style={styles.empty}>Dein Vorrat wartet auf das erste Lebensmittel.</Text>}
+          />
+        )}
+        <Notice error={error} loading={loading} retry={retry} />
+        <Action label="Lebensmittel erfassen" onPress={() => router.replace("/erfassen")} />
+        <BottomNav active="pantry" />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fbf8f2",
-    padding: 20,
-  },
-  heading: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#232621",
-    marginBottom: 16,
-  },
-  description: {
-    fontSize: 16,
-    color: "#686d62",
-  },
-  link: {
-    marginTop: 24,
-    backgroundColor: "#3e7152",
-    color: "#ffffff",
-    textAlign: "center",
-    padding: 14,
-    borderRadius: 12,
-    overflow: "hidden",
-    fontSize: 16,
-    fontWeight: "bold",
-  },
+  page: { flex: 1, backgroundColor: colors.background },
+  content: { flex: 1, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, gap: 16 },
+  heading: { fontSize: 24, fontWeight: "600", color: colors.text },
+  count: { color: colors.muted, fontSize: 14 },
+  list: { gap: 8, paddingBottom: 16 },
+  empty: { textAlign: "center", paddingVertical: 32, color: colors.muted },
 });
