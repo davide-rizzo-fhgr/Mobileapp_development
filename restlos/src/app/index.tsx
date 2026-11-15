@@ -6,7 +6,7 @@ import { useProducts } from "../storage/useProducts";
 import { daysUntil } from "../types/Product";
 
 export default function OverviewScreen() {
-  const { products, loading, error, retry } = useProducts();
+  const { products, loading, error, retry, undo, canUndo } = useProducts();
   const urgent = products.filter(p => daysUntil(p.expiryDate) <= 7).sort((a, b) => a.expiryDate.localeCompare(b.expiryDate));
   return <SafeAreaView style={styles.page}><View style={styles.content}>
     <Text style={styles.brand}>◕  Restlos</Text>
@@ -16,7 +16,7 @@ export default function OverviewScreen() {
     <ScrollView contentContainerStyle={styles.cards}>
       {loading ? <ActivityIndicator color={colors.primary} /> : urgent.length === 0 ? <Text style={styles.empty}>Aktuell läuft nichts bald ab.</Text> : urgent.map(p => <View key={p.id} style={styles.card}><ProductCard product={p} card /></View>)}
     </ScrollView>
-    <Notice error={error} loading={loading} retry={retry} />
+    <Notice error={error} loading={loading} retry={retry} undo={undo} canUndo={canUndo} />
     <Action label="Lebensmittel erfassen" onPress={() => router.replace("/erfassen")} />
     <BottomNav active="overview" />
   </View></SafeAreaView>;

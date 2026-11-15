@@ -19,12 +19,13 @@ export function BottomNav({ active }: { active: "overview" | "pantry" }) {
 type NoticeProps = {
   error: string | null;
   loading: boolean;
+  canUndo: boolean;
   retry: () => void;
+  undo: () => Promise<boolean>;
 };
 
-export function Notice({ error, retry, loading }: NoticeProps) {
-  if (!error) return null;
-  return <View style={styles.notice}><Text style={styles.error}>{error}</Text><Text onPress={retry} style={styles.activeText}>{loading ? "Lädt …" : "Erneut versuchen"}</Text></View>;
+export function Notice({ error, retry, loading, canUndo, undo }: NoticeProps) {
+  return <>{error && <View style={styles.notice}><Text style={styles.error}>{error}</Text><Text onPress={retry} style={styles.activeText}>{loading ? "Lädt …" : "Erneut versuchen"}</Text></View>}{canUndo && <Pressable onPress={() => void undo()} style={styles.notice}><Text style={styles.activeText}>Lebensmittel aufgebraucht · Rückgängig</Text></Pressable>}</>;
 }
 
 export function ProductCard({ product, card }: { product: Product; card?: boolean }) {
