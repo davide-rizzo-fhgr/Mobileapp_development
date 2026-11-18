@@ -26,7 +26,9 @@ export function useProducts() {
       // Fehler beim optionalen Rückgängig-Eintrag dürfen den Vorrat nicht blockieren.
       try {
         const lastConsumed = await loadConsumedProduct();
-        setRemoved(lastConsumed && !stored.some(item => item.id === lastConsumed.id) ? lastConsumed : null);
+        setRemoved(
+          lastConsumed && !stored.some((item) => item.id === lastConsumed.id) ? lastConsumed : null,
+        );
       } catch {
         setRemoved(null);
       }
@@ -47,7 +49,11 @@ export function useProducts() {
         setReady(true);
         try {
           const lastConsumed = await loadConsumedProduct();
-          setRemoved(lastConsumed && !stored.some(item => item.id === lastConsumed.id) ? lastConsumed : null);
+          setRemoved(
+            lastConsumed && !stored.some((item) => item.id === lastConsumed.id)
+              ? lastConsumed
+              : null,
+          );
         } catch {
           setRemoved(null);
         }
@@ -63,8 +69,8 @@ export function useProducts() {
 
   async function save(product: Product): Promise<boolean> {
     if (!ready) return false;
-    const updated = products.some(item => item.id === product.id)
-      ? products.map(item => item.id === product.id ? product : item)
+    const updated = products.some((item) => item.id === product.id)
+      ? products.map((item) => (item.id === product.id ? product : item))
       : [...products, product];
     try {
       await saveProducts(updated);
@@ -79,9 +85,9 @@ export function useProducts() {
 
   async function remove(id: string, allowUndo: boolean): Promise<boolean> {
     if (!ready) return false;
-    const product = products.find(item => item.id === id);
+    const product = products.find((item) => item.id === id);
     if (!product) return false;
-    const updated = products.filter(item => item.id !== id);
+    const updated = products.filter((item) => item.id !== id);
     try {
       if (allowUndo) await saveConsumedProduct(product);
       await saveProducts(updated);
@@ -102,7 +108,11 @@ export function useProducts() {
       setProducts(updated);
       setRemoved(null);
       // Beim nächsten Laden wird ein bereits vorhandenes Produkt nicht erneut angeboten.
-      try { await clearConsumedProduct(); } catch { /* Der Vorrat ist bereits gespeichert. */ }
+      try {
+        await clearConsumedProduct();
+      } catch {
+        /* Der Vorrat ist bereits gespeichert. */
+      }
       return true;
     } catch {
       setError("Wiederherstellen fehlgeschlagen. Bitte versuche es erneut.");

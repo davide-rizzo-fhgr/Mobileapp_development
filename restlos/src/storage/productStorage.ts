@@ -7,11 +7,17 @@ const UNDO_KEY = "restlos.lastConsumed.v1";
 function isProduct(value: unknown): value is Product {
   if (typeof value !== "object" || value === null) return false;
   const product = value as Record<string, unknown>;
-  return typeof product.id === "string" && typeof product.name === "string" &&
-    typeof product.quantity === "string" && typeof product.unit === "string" &&
-    typeof product.place === "string" && typeof product.category === "string" &&
-    typeof product.expiryDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(product.expiryDate) &&
-    (product.photoUri === undefined || typeof product.photoUri === "string");
+  return (
+    typeof product.id === "string" &&
+    typeof product.name === "string" &&
+    typeof product.quantity === "string" &&
+    typeof product.unit === "string" &&
+    typeof product.place === "string" &&
+    typeof product.category === "string" &&
+    typeof product.expiryDate === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(product.expiryDate) &&
+    (product.photoUri === undefined || typeof product.photoUri === "string")
+  );
 }
 
 export async function loadProducts(): Promise<Product[]> {

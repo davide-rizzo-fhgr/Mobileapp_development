@@ -15,7 +15,11 @@ export interface Product {
 export function daysUntil(date: string): number {
   const [year, month, day] = date.split("-").map(Number);
   const today = new Date();
-  return Math.round((Date.UTC(year, month - 1, day) - Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())) / 86400000);
+  return Math.round(
+    (Date.UTC(year, month - 1, day) -
+      Date.UTC(today.getFullYear(), today.getMonth(), today.getDate())) /
+      86400000,
+  );
 }
 
 export function formatDate(date: string): string {
