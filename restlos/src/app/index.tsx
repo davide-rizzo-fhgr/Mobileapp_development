@@ -1,19 +1,24 @@
 import { router } from "expo-router";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
 import ActionButton from "../components/ActionButton";
 import BottomNav from "../components/BottomNav";
-import Notice from "../components/Notice";
+import ErrorView from "../components/ErrorView";
 import ProductCard from "../components/ProductCard";
+import UndoBanner from "../components/UndoBanner";
 import { colors } from "../constants/colors";
-import { useProducts } from "../storage/useProducts";
+import { useProducts } from "../context/ProductContext";
 import { daysUntil } from "../utils/date";
 
 export default function OverviewScreen() {
-  const { products, loading, error, retry, undo, canUndo } = useProducts();
-  const urgent = products
-    .filter((p) => daysUntil(p.expiryDate) <= 7)
+  const { products, loadingState, errorMessage, retry } = useProducts();
+
+  // Abgeleiteter Wert: wird bei jedem Render berechnet und nicht im State gespeichert.
+  const urgentProducts = products
+    .filter((product) => daysUntil(product.expiryDate) <= 7)
     .sort((a, b) => a.expiryDate.localeCompare(b.expiryDate));
+
   function handleOpen(id: string) {
     router.replace({ pathname: "/produktdetails", params: { id } });
   }
@@ -25,32 +30,38 @@ export default function OverviewScreen() {
         <Text style={styles.body}>Gutes Essen. Weniger vergessen.</Text>
         <Text style={styles.subtitle}>Dein Vorrat im Blick.</Text>
         <Text style={styles.heading}>Bald aufbrauchen</Text>
-        <ScrollView contentContainerStyle={styles.cards}>
-          {loading ? (
-            <ActivityIndicator color={colors.primary} />
-          ) : urgent.length === 0 ? (
-            <Text style={styles.empty}>Aktuell läuft nichts bald ab.</Text>
-          ) : (
-            urgent.map((p) => (
-              <View key={p.id} style={styles.card}>
-                <ProductCard product={p} onPress={handleOpen} card />
+
+        {loadingState === "loading" && (
+          <ActivityIndicator color={colors.primary} style={styles.center} />
+        )}
+        {loadingState === "error" && (
+          <ErrorView
+            message={errorMessage ?? "Unbekannter Fehler"}
+            actionLabel="Erneut versuchen"
+            onAction={retry}
+          />
+        )}
+        {loadingState === "ready" && (
+          <ScrollView style={styles.center} contentContainerStyle={styles.cards}>
+            {urgentProducts.length === 0 && (
+              <Text style={styles.empty}>Aktuell läuft nichts bald ab.</Text>
+            )}
+            {urgentProducts.map((product) => (
+              <View key={product.id} style={styles.card}>
+                <ProductCard product={product} onPress={handleOpen} card />
               </View>
-            ))
-          )}
-        </ScrollView>
-        <Notice
-          error={error}
-          loading={loading}
-          canUndo={canUndo}
-          onRetry={retry}
-          onUndo={() => void undo()}
-        />
+            ))}
+          </ScrollView>
+        )}
+
+        <UndoBanner />
         <ActionButton label="Lebensmittel erfassen" onPress={() => router.replace("/erfassen")} />
         <BottomNav active="overview" />
       </View>
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   page: {
     flex: 1,
@@ -80,6 +91,9 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: colors.text,
+  },
+  center: {
+    flex: 1,
   },
   cards: {
     flexDirection: "row",

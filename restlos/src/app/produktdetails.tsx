@@ -1,51 +1,78 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
 import ActionButton from "../components/ActionButton";
+import ErrorView from "../components/ErrorView";
 import ProductImage from "../components/ProductImage";
 import { colors } from "../constants/colors";
-import { useProducts } from "../storage/useProducts";
+import { useProducts } from "../context/ProductContext";
 import { expiryLabel } from "../utils/date";
 
 export default function DetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { products, remove, loading, error, retry } = useProducts();
+  const { products, loadingState, errorMessage, retry, consumeProduct, deleteProduct } =
+    useProducts();
+
   const product = products.find((item) => item.id === id);
-  if (loading)
-    return (
-      <SafeAreaView style={styles.page}>
-        <ActivityIndicator color={colors.primary} />
-      </SafeAreaView>
-    );
-  if (error)
-    return (
-      <SafeAreaView style={styles.page}>
-        <View style={styles.content}>
-          <Text>{error}</Text>
-          <ActionButton label="Erneut versuchen" onPress={retry} />
-        </View>
-      </SafeAreaView>
-    );
-  if (!product)
-    return (
-      <SafeAreaView style={styles.page}>
-        <View style={styles.content}>
-          <Text>Dieses Lebensmittel wurde nicht gefunden.</Text>
-          <ActionButton label="Zum Vorrat" onPress={() => router.replace("/vorrat")} />
-        </View>
-      </SafeAreaView>
-    );
-  const item = product;
-  async function removeProduct(allowUndo: boolean) {
-    if (await remove(item.id, allowUndo)) router.replace("/vorrat");
-    else Alert.alert("Fehler", "Das Lebensmittel konnte nicht gespeichert werden.");
+
+  async function handleConsume() {
+    const ok = await consumeProduct(id);
+    if (ok) {
+      router.replace("/vorrat");
+    } else {
+      Alert.alert("Fehler", "Die Änderung konnte nicht gespeichert werden.");
+    }
   }
-  function confirmDelete() {
-    Alert.alert("Lebensmittel löschen?", `Möchtest du ${item.name} wirklich löschen?`, [
+
+  async function handleDelete() {
+    const ok = await deleteProduct(id);
+    if (ok) {
+      router.replace("/vorrat");
+    } else {
+      Alert.alert("Fehler", "Das Lebensmittel konnte nicht gelöscht werden.");
+    }
+  }
+
+  function confirmDelete(name: string) {
+    Alert.alert("Lebensmittel löschen?", `Möchtest du ${name} wirklich löschen?`, [
       { text: "Abbrechen", style: "cancel" },
-      { text: "Löschen", style: "destructive", onPress: () => void removeProduct(false) },
+      { text: "Löschen", style: "destructive", onPress: handleDelete },
     ]);
   }
+
+  if (loadingState === "loading") {
+    return (
+      <SafeAreaView style={styles.page}>
+        <ActivityIndicator color={colors.primary} style={styles.spacer} />
+      </SafeAreaView>
+    );
+  }
+
+  if (loadingState === "error") {
+    return (
+      <SafeAreaView style={styles.page}>
+        <ErrorView
+          message={errorMessage ?? "Unbekannter Fehler"}
+          actionLabel="Erneut versuchen"
+          onAction={retry}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  if (product === undefined) {
+    return (
+      <SafeAreaView style={styles.page}>
+        <ErrorView
+          message="Dieses Lebensmittel existiert nicht (mehr)."
+          actionLabel="Zum Vorrat"
+          onAction={() => router.replace("/vorrat")}
+        />
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.page}>
       <View style={styles.content}>
@@ -56,31 +83,37 @@ export default function DetailScreen() {
         >
           <Text style={styles.back}>‹</Text>
         </Pressable>
-        <ProductImage product={item} large />
+        <ProductImage product={product} large />
         <View>
-          <Text style={styles.heading}>{item.name}</Text>
+          <Text style={styles.heading}>{product.name}</Text>
           <Text style={styles.muted}>
-            {item.quantity} {item.unit}
+            {product.quantity} {product.unit}
           </Text>
         </View>
         <View style={styles.meta}>
-          <Text>Lagerort: {item.place}</Text>
-          <Text style={styles.warning}>{expiryLabel(item.expiryDate)}</Text>
+          <Text style={styles.metaText}>Lagerort: {product.place}</Text>
+          <Text style={styles.metaText}>Kategorie: {product.category}</Text>
+          <Text style={styles.warning}>{expiryLabel(product.expiryDate)}</Text>
         </View>
         <View style={styles.spacer} />
-        <ActionButton label="Aufgebraucht" onPress={() => void removeProduct(true)} />
+        <ActionButton label="Aufgebraucht" onPress={handleConsume} />
         <ActionButton
           label="Bearbeiten"
           secondary
-          onPress={() => router.replace({ pathname: "/erfassen", params: { id: item.id } })}
+          onPress={() => router.replace({ pathname: "/erfassen", params: { id: product.id } })}
         />
-        <Pressable onPress={confirmDelete} style={styles.delete}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => confirmDelete(product.name)}
+          style={styles.delete}
+        >
           <Text style={styles.deleteText}>Löschen</Text>
         </Pressable>
       </View>
     </SafeAreaView>
   );
 }
+
 const styles = StyleSheet.create({
   page: {
     flex: 1,
@@ -116,8 +149,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     gap: 8,
   },
+  metaText: {
+    color: colors.text,
+    fontSize: 14,
+  },
   warning: {
     color: colors.warning,
+    fontSize: 14,
   },
   spacer: {
     flex: 1,

@@ -12,8 +12,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import ActionButton from "../components/ActionButton";
 import ChipGroup from "../components/ChipGroup";
+import ErrorView from "../components/ErrorView";
 import { colors } from "../constants/colors";
-import { useProducts } from "../storage/useProducts";
+import { useProducts } from "../context/ProductContext";
 import type { Category, Product, StoragePlace } from "../types/Product";
 import { formatDate } from "../utils/date";
 
@@ -52,33 +53,43 @@ function isTooOld(expiryDate: string): boolean {
 
 export default function FormScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const { products, loading, error, retry, save } = useProducts();
+  const { products, loadingState, errorMessage, retry, saveProduct } = useProducts();
+
   const existing = products.find((item) => item.id === id);
-  if (loading)
+
+  if (loadingState === "loading") {
     return (
       <SafeAreaView style={styles.page}>
-        <ActivityIndicator color={colors.primary} />
+        <ActivityIndicator color={colors.primary} style={styles.center} />
       </SafeAreaView>
     );
-  if (error)
+  }
+
+  if (loadingState === "error") {
     return (
       <SafeAreaView style={styles.page}>
-        <View style={styles.content}>
-          <Text>{error}</Text>
-          <ActionButton label="Erneut versuchen" onPress={retry} />
-        </View>
+        <ErrorView
+          message={errorMessage ?? "Unbekannter Fehler"}
+          actionLabel="Erneut versuchen"
+          onAction={retry}
+        />
       </SafeAreaView>
     );
-  if (id && !existing)
+  }
+
+  if (id !== undefined && existing === undefined) {
     return (
       <SafeAreaView style={styles.page}>
-        <View style={styles.content}>
-          <Text>Lebensmittel nicht gefunden.</Text>
-          <ActionButton label="Zum Vorrat" onPress={() => router.replace("/vorrat")} />
-        </View>
+        <ErrorView
+          message="Dieses Lebensmittel existiert nicht (mehr)."
+          actionLabel="Zum Vorrat"
+          onAction={() => router.replace("/vorrat")}
+        />
       </SafeAreaView>
     );
-  return <ProductForm existing={existing} onSave={save} />;
+  }
+
+  return <ProductForm existing={existing} onSave={saveProduct} />;
 }
 
 function ProductForm({
@@ -193,6 +204,9 @@ const styles = StyleSheet.create({
   page: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  center: {
+    flex: 1,
   },
   content: {
     paddingHorizontal: 20,

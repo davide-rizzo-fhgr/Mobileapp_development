@@ -11,3 +11,5 @@ export interface Product {
   expiryDate: string;
   photoUri?: string;
 }
+
+export type LoadingState = "loading" | "ready" | "error";
