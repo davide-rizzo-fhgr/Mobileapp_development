@@ -1,9 +1,11 @@
 import { router, useLocalSearchParams } from "expo-router";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Action, colors, ProductImage } from "../components/UI";
+import ActionButton from "../components/ActionButton";
+import ProductImage from "../components/ProductImage";
+import { colors } from "../constants/colors";
 import { useProducts } from "../storage/useProducts";
-import { expiryLabel } from "../types/Product";
+import { expiryLabel } from "../utils/date";
 
 export default function DetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -20,7 +22,7 @@ export default function DetailScreen() {
       <SafeAreaView style={styles.page}>
         <View style={styles.content}>
           <Text>{error}</Text>
-          <Action label="Erneut versuchen" onPress={retry} />
+          <ActionButton label="Erneut versuchen" onPress={retry} />
         </View>
       </SafeAreaView>
     );
@@ -29,7 +31,7 @@ export default function DetailScreen() {
       <SafeAreaView style={styles.page}>
         <View style={styles.content}>
           <Text>Dieses Lebensmittel wurde nicht gefunden.</Text>
-          <Action label="Zum Vorrat" onPress={() => router.replace("/vorrat")} />
+          <ActionButton label="Zum Vorrat" onPress={() => router.replace("/vorrat")} />
         </View>
       </SafeAreaView>
     );
@@ -66,8 +68,8 @@ export default function DetailScreen() {
           <Text style={styles.warning}>{expiryLabel(item.expiryDate)}</Text>
         </View>
         <View style={styles.spacer} />
-        <Action label="Aufgebraucht" onPress={() => void removeProduct(true)} />
-        <Action
+        <ActionButton label="Aufgebraucht" onPress={() => void removeProduct(true)} />
+        <ActionButton
           label="Bearbeiten"
           secondary
           onPress={() => router.replace({ pathname: "/erfassen", params: { id: item.id } })}
@@ -108,7 +110,7 @@ const styles = StyleSheet.create({
   },
   meta: {
     padding: 16,
-    backgroundColor: "white",
+    backgroundColor: colors.surface,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 12,

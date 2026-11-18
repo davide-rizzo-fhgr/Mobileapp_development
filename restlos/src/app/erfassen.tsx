@@ -10,10 +10,12 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Action, colors } from "../components/UI";
+import ActionButton from "../components/ActionButton";
+import ChipGroup from "../components/ChipGroup";
+import { colors } from "../constants/colors";
 import { useProducts } from "../storage/useProducts";
 import type { Category, Product, StoragePlace } from "../types/Product";
-import { formatDate } from "../types/Product";
+import { formatDate } from "../utils/date";
 
 const places: StoragePlace[] = ["Kühlschrank", "Tiefkühler", "Vorratsschrank"];
 const categories: Category[] = ["Milchprodukte", "Obst und Gemüse", "Getreide", "Sonstiges"];
@@ -63,7 +65,7 @@ export default function FormScreen() {
       <SafeAreaView style={styles.page}>
         <View style={styles.content}>
           <Text>{error}</Text>
-          <Action label="Erneut versuchen" onPress={retry} />
+          <ActionButton label="Erneut versuchen" onPress={retry} />
         </View>
       </SafeAreaView>
     );
@@ -72,7 +74,7 @@ export default function FormScreen() {
       <SafeAreaView style={styles.page}>
         <View style={styles.content}>
           <Text>Lebensmittel nicht gefunden.</Text>
-          <Action label="Zum Vorrat" onPress={() => router.replace("/vorrat")} />
+          <ActionButton label="Zum Vorrat" onPress={() => router.replace("/vorrat")} />
         </View>
       </SafeAreaView>
     );
@@ -154,43 +156,11 @@ function ProductForm({
           keyboardType="decimal-pad"
         />
         <Text style={styles.label}>Einheit</Text>
-        <View style={styles.choices}>
-          {units.map((value) => (
-            <Pressable
-              key={value}
-              onPress={() => setUnit(value)}
-              style={[styles.chip, unit === value && styles.selected]}
-            >
-              <Text style={unit === value ? styles.selectedText : styles.chipText}>{value}</Text>
-            </Pressable>
-          ))}
-        </View>
+        <ChipGroup options={units} selected={unit} onSelect={setUnit} />
         <Text style={styles.label}>Lagerort</Text>
-        <View style={styles.choices}>
-          {places.map((value) => (
-            <Pressable
-              key={value}
-              onPress={() => setPlace(value)}
-              style={[styles.chip, place === value && styles.selected]}
-            >
-              <Text style={place === value ? styles.selectedText : styles.chipText}>{value}</Text>
-            </Pressable>
-          ))}
-        </View>
+        <ChipGroup options={places} selected={place} onSelect={setPlace} />
         <Text style={styles.label}>Kategorie</Text>
-        <View style={styles.choices}>
-          {categories.map((value) => (
-            <Pressable
-              key={value}
-              onPress={() => setCategory(value)}
-              style={[styles.chip, category === value && styles.selected]}
-            >
-              <Text style={category === value ? styles.selectedText : styles.chipText}>
-                {value}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
+        <ChipGroup options={categories} selected={category} onSelect={setCategory} />
         <Text style={styles.label}>Mindestens haltbar bis</Text>
         <TextInput
           style={styles.input}
@@ -200,7 +170,7 @@ function ProductForm({
           keyboardType="numbers-and-punctuation"
         />
         <View style={{ height: 8 }} />
-        <Action
+        <ActionButton
           label={saving ? "Speichern …" : "Speichern"}
           disabled={saving}
           onPress={() => void submit()}
@@ -244,26 +214,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     color: colors.text,
   },
-  photoRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 4,
-  },
-  photo: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    backgroundColor: colors.light,
-    overflow: "hidden",
-  },
-  photoImage: {
-    width: 80,
-    height: 80,
-  },
-  hint: {
-    color: colors.muted,
-    fontSize: 12,
-  },
   label: {
     color: colors.muted,
     fontSize: 12,
@@ -275,34 +225,11 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 8,
     paddingHorizontal: 16,
-    backgroundColor: "white",
+    backgroundColor: colors.surface,
     fontSize: 16,
   },
-  choices: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-  },
-  chip: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: "white",
-    borderRadius: 16,
-  },
-  selected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  chipText: {
-    color: colors.muted,
-  },
-  selectedText: {
-    color: "white",
-  },
   error: {
-    color: "#bc473e",
+    color: colors.error,
     padding: 8,
   },
   remove: {

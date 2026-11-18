@@ -1,15 +1,23 @@
 import { router } from "expo-router";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Action, BottomNav, colors, Notice, ProductCard } from "../components/UI";
+import ActionButton from "../components/ActionButton";
+import BottomNav from "../components/BottomNav";
+import Notice from "../components/Notice";
+import ProductCard from "../components/ProductCard";
+import { colors } from "../constants/colors";
 import { useProducts } from "../storage/useProducts";
-import { daysUntil } from "../types/Product";
+import { daysUntil } from "../utils/date";
 
 export default function OverviewScreen() {
   const { products, loading, error, retry, undo, canUndo } = useProducts();
   const urgent = products
     .filter((p) => daysUntil(p.expiryDate) <= 7)
     .sort((a, b) => a.expiryDate.localeCompare(b.expiryDate));
+  function handleOpen(id: string) {
+    router.replace({ pathname: "/produktdetails", params: { id } });
+  }
+
   return (
     <SafeAreaView style={styles.page}>
       <View style={styles.content}>
@@ -25,13 +33,19 @@ export default function OverviewScreen() {
           ) : (
             urgent.map((p) => (
               <View key={p.id} style={styles.card}>
-                <ProductCard product={p} card />
+                <ProductCard product={p} onPress={handleOpen} card />
               </View>
             ))
           )}
         </ScrollView>
-        <Notice error={error} loading={loading} retry={retry} undo={undo} canUndo={canUndo} />
-        <Action label="Lebensmittel erfassen" onPress={() => router.replace("/erfassen")} />
+        <Notice
+          error={error}
+          loading={loading}
+          canUndo={canUndo}
+          onRetry={retry}
+          onUndo={() => void undo()}
+        />
+        <ActionButton label="Lebensmittel erfassen" onPress={() => router.replace("/erfassen")} />
         <BottomNav active="overview" />
       </View>
     </SafeAreaView>
