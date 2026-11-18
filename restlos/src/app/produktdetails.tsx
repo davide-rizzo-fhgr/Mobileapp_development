@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -14,22 +15,30 @@ export default function DetailScreen() {
   const { products, loadingState, errorMessage, retry, consumeProduct, deleteProduct } =
     useProducts();
 
+  // Während des Entfernens zeigt der Screen den Ladeindikator. Das verhindert doppeltes
+  // Drücken und die Meldung "existiert nicht (mehr)" beim Zurücknavigieren.
+  const [isRemoving, setIsRemoving] = useState(false);
+
   const product = products.find((item) => item.id === id);
 
   async function handleConsume() {
+    setIsRemoving(true);
     const ok = await consumeProduct(id);
     if (ok) {
-      router.replace("/vorrat");
+      router.back();
     } else {
+      setIsRemoving(false);
       Alert.alert("Fehler", "Die Änderung konnte nicht gespeichert werden.");
     }
   }
 
   async function handleDelete() {
+    setIsRemoving(true);
     const ok = await deleteProduct(id);
     if (ok) {
-      router.replace("/vorrat");
+      router.back();
     } else {
+      setIsRemoving(false);
       Alert.alert("Fehler", "Das Lebensmittel konnte nicht gelöscht werden.");
     }
   }
@@ -41,9 +50,9 @@ export default function DetailScreen() {
     ]);
   }
 
-  if (loadingState === "loading") {
+  if (loadingState === "loading" || isRemoving) {
     return (
-      <SafeAreaView style={styles.page}>
+      <SafeAreaView style={styles.page} edges={["bottom", "left", "right"]}>
         <ActivityIndicator color={colors.primary} style={styles.spacer} />
       </SafeAreaView>
     );
@@ -51,7 +60,7 @@ export default function DetailScreen() {
 
   if (loadingState === "error") {
     return (
-      <SafeAreaView style={styles.page}>
+      <SafeAreaView style={styles.page} edges={["bottom", "left", "right"]}>
         <ErrorView
           message={errorMessage ?? "Unbekannter Fehler"}
           actionLabel="Erneut versuchen"
@@ -63,26 +72,19 @@ export default function DetailScreen() {
 
   if (product === undefined) {
     return (
-      <SafeAreaView style={styles.page}>
+      <SafeAreaView style={styles.page} edges={["bottom", "left", "right"]}>
         <ErrorView
           message="Dieses Lebensmittel existiert nicht (mehr)."
-          actionLabel="Zum Vorrat"
-          onAction={() => router.replace("/vorrat")}
+          actionLabel="Zurück"
+          onAction={() => router.back()}
         />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.page}>
+    <SafeAreaView style={styles.page} edges={["bottom", "left", "right"]}>
       <View style={styles.content}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Zurück"
-          onPress={() => router.replace("/vorrat")}
-        >
-          <Text style={styles.back}>‹</Text>
-        </Pressable>
         <ProductImage product={product} large />
         <View>
           <Text style={styles.heading}>{product.name}</Text>
@@ -100,7 +102,7 @@ export default function DetailScreen() {
         <ActionButton
           label="Bearbeiten"
           secondary
-          onPress={() => router.replace({ pathname: "/erfassen", params: { id: product.id } })}
+          onPress={() => router.push({ pathname: "/erfassen", params: { id: product.id } })}
         />
         <Pressable
           accessibilityRole="button"
@@ -125,11 +127,6 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 16,
     gap: 16,
-  },
-  back: {
-    fontSize: 32,
-    color: colors.text,
-    lineHeight: 32,
   },
   heading: {
     fontSize: 24,

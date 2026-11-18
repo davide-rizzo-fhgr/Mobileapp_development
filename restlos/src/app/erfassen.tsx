@@ -1,14 +1,6 @@
 import { useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { router, Stack, useLocalSearchParams } from "expo-router";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import ActionButton from "../components/ActionButton";
 import ChipGroup from "../components/ChipGroup";
@@ -59,7 +51,7 @@ export default function FormScreen() {
 
   if (loadingState === "loading") {
     return (
-      <SafeAreaView style={styles.page}>
+      <SafeAreaView style={styles.page} edges={["bottom", "left", "right"]}>
         <ActivityIndicator color={colors.primary} style={styles.center} />
       </SafeAreaView>
     );
@@ -67,7 +59,7 @@ export default function FormScreen() {
 
   if (loadingState === "error") {
     return (
-      <SafeAreaView style={styles.page}>
+      <SafeAreaView style={styles.page} edges={["bottom", "left", "right"]}>
         <ErrorView
           message={errorMessage ?? "Unbekannter Fehler"}
           actionLabel="Erneut versuchen"
@@ -79,11 +71,11 @@ export default function FormScreen() {
 
   if (id !== undefined && existing === undefined) {
     return (
-      <SafeAreaView style={styles.page}>
+      <SafeAreaView style={styles.page} edges={["bottom", "left", "right"]}>
         <ErrorView
           message="Dieses Lebensmittel existiert nicht (mehr)."
-          actionLabel="Zum Vorrat"
-          onAction={() => router.replace("/vorrat")}
+          actionLabel="Zurück"
+          onAction={() => router.back()}
         />
       </SafeAreaView>
     );
@@ -131,25 +123,22 @@ function ProductForm({
     setError("");
     const ok = await onSave(product);
     setSaving(false);
-    if (ok) router.replace({ pathname: "/produktdetails", params: { id: product.id } });
-    else setError("Speichern fehlgeschlagen. Bitte versuche es erneut.");
+    if (!ok) {
+      setError("Speichern fehlgeschlagen. Bitte versuche es erneut.");
+      return;
+    }
+    if (existing) {
+      // Bearbeiten: zurück zu den Details, die bereits im Stack liegen.
+      router.back();
+    } else {
+      // Neu: Das Formular wird durch die Details ersetzt. "Zurück" führt dann zum Tab.
+      router.replace({ pathname: "/produktdetails", params: { id: product.id } });
+    }
   }
   return (
-    <SafeAreaView style={styles.page}>
+    <SafeAreaView style={styles.page} edges={["bottom", "left", "right"]}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <View style={styles.header}>
-          <Pressable
-            onPress={() =>
-              existing
-                ? router.replace({ pathname: "/produktdetails", params: { id: existing.id } })
-                : router.replace("/")
-            }
-            accessibilityLabel="Zurück"
-          >
-            <Text style={styles.back}>‹</Text>
-          </Pressable>
-          <Text style={styles.heading}>{existing ? "Bearbeiten" : "Lebensmittel erfassen"}</Text>
-        </View>
+        <Stack.Screen options={{ title: existing ? "Bearbeiten" : "Lebensmittel erfassen" }} />
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <Text style={styles.label}>Name</Text>
         <TextInput
@@ -186,16 +175,6 @@ function ProductForm({
           disabled={saving}
           onPress={() => void submit()}
         />
-        <Pressable
-          onPress={() =>
-            existing
-              ? router.replace({ pathname: "/produktdetails", params: { id: existing.id } })
-              : router.replace("/")
-          }
-          style={styles.backButton}
-        >
-          <Text style={styles.remove}>Zurück</Text>
-        </Pressable>
       </ScrollView>
     </SafeAreaView>
   );
@@ -214,20 +193,6 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
     gap: 8,
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  back: {
-    fontSize: 32,
-    color: colors.text,
-  },
-  heading: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: colors.text,
-  },
   label: {
     color: colors.muted,
     fontSize: 12,
@@ -245,12 +210,5 @@ const styles = StyleSheet.create({
   error: {
     color: colors.error,
     padding: 8,
-  },
-  remove: {
-    color: colors.dark,
-    fontWeight: "600",
-  },
-  backButton: {
-    padding: 12,
   },
 });

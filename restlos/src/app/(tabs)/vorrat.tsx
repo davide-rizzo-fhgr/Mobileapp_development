@@ -3,15 +3,14 @@ import { useState } from "react";
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import ActionButton from "../components/ActionButton";
-import BottomNav from "../components/BottomNav";
-import ChipGroup from "../components/ChipGroup";
-import ErrorView from "../components/ErrorView";
-import ProductCard from "../components/ProductCard";
-import UndoBanner from "../components/UndoBanner";
-import { colors } from "../constants/colors";
-import { useProducts } from "../context/ProductContext";
-import type { Product } from "../types/Product";
+import ActionButton from "../../components/ActionButton";
+import ChipGroup from "../../components/ChipGroup";
+import ErrorView from "../../components/ErrorView";
+import ProductCard from "../../components/ProductCard";
+import UndoBanner from "../../components/UndoBanner";
+import { colors } from "../../constants/colors";
+import { useProducts } from "../../context/ProductContext";
+import type { Product } from "../../types/Product";
 
 type Filter = "Alle" | "Kühlschrank" | "Tiefkühler" | "Vorratsschrank";
 
@@ -32,11 +31,11 @@ export default function PantryScreen() {
   );
 
   function handleOpen(id: string) {
-    router.replace({ pathname: "/produktdetails", params: { id } });
+    router.push({ pathname: "/produktdetails", params: { id } });
   }
 
   return (
-    <SafeAreaView style={styles.page}>
+    <SafeAreaView style={styles.page} edges={["top", "left", "right"]}>
       <View style={styles.content}>
         <Text style={styles.heading}>Dein Vorrat</Text>
         <Text style={styles.muted}>
@@ -82,8 +81,7 @@ export default function PantryScreen() {
         )}
 
         <UndoBanner />
-        <ActionButton label="Lebensmittel erfassen" onPress={() => router.replace("/erfassen")} />
-        <BottomNav active="pantry" />
+        <ActionButton label="Lebensmittel erfassen" onPress={() => router.push("/erfassen")} />
       </View>
     </SafeAreaView>
   );

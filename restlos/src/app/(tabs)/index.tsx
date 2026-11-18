@@ -2,14 +2,13 @@ import { router } from "expo-router";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import ActionButton from "../components/ActionButton";
-import BottomNav from "../components/BottomNav";
-import ErrorView from "../components/ErrorView";
-import ProductCard from "../components/ProductCard";
-import UndoBanner from "../components/UndoBanner";
-import { colors } from "../constants/colors";
-import { useProducts } from "../context/ProductContext";
-import { daysUntil } from "../utils/date";
+import ActionButton from "../../components/ActionButton";
+import ErrorView from "../../components/ErrorView";
+import ProductCard from "../../components/ProductCard";
+import UndoBanner from "../../components/UndoBanner";
+import { colors } from "../../constants/colors";
+import { useProducts } from "../../context/ProductContext";
+import { daysUntil } from "../../utils/date";
 
 export default function OverviewScreen() {
   const { products, loadingState, errorMessage, retry } = useProducts();
@@ -20,11 +19,11 @@ export default function OverviewScreen() {
     .sort((a, b) => a.expiryDate.localeCompare(b.expiryDate));
 
   function handleOpen(id: string) {
-    router.replace({ pathname: "/produktdetails", params: { id } });
+    router.push({ pathname: "/produktdetails", params: { id } });
   }
 
   return (
-    <SafeAreaView style={styles.page}>
+    <SafeAreaView style={styles.page} edges={["top", "left", "right"]}>
       <View style={styles.content}>
         <Text style={styles.brand}>◕ Restlos</Text>
         <Text style={styles.body}>Gutes Essen. Weniger vergessen.</Text>
@@ -55,8 +54,7 @@ export default function OverviewScreen() {
         )}
 
         <UndoBanner />
-        <ActionButton label="Lebensmittel erfassen" onPress={() => router.replace("/erfassen")} />
-        <BottomNav active="overview" />
+        <ActionButton label="Lebensmittel erfassen" onPress={() => router.push("/erfassen")} />
       </View>
     </SafeAreaView>
   );
