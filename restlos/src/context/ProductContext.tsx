@@ -50,8 +50,9 @@ export function ProductProvider({ children }: ProductProviderProps) {
         } catch {
           setLastConsumed(null);
         }
-      } catch {
-        setErrorMessage("Dein Vorrat konnte nicht geladen werden. Bitte versuche es erneut.");
+      } catch (error) {
+        // productStorage wirft verständliche Meldungen, die direkt angezeigt werden.
+        setErrorMessage(error instanceof Error ? error.message : "Unbekannter Fehler");
         setLoadingState("error");
       }
     }
