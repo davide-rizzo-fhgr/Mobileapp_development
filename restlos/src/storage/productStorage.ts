@@ -3,7 +3,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Category, Product, StoragePlace } from "../types/Product";
 
 const STORAGE_KEY = "restlos.products.v1";
-const CONSUMED_KEY = "restlos.lastConsumed.v1";
 
 const PLACES: StoragePlace[] = ["Kühlschrank", "Tiefkühler", "Vorratsschrank"];
 const CATEGORIES: Category[] = ["Milchprodukte", "Obst und Gemüse", "Getreide", "Sonstiges"];
@@ -70,26 +69,4 @@ export async function saveProducts(products: Product[]): Promise<void> {
     console.error("saveProducts fehlgeschlagen:", error);
     throw new Error("Dein Vorrat konnte nicht gespeichert werden.");
   }
-}
-
-// Das zuletzt aufgebrauchte Produkt kann wiederhergestellt werden.
-export async function saveConsumedProduct(product: Product): Promise<void> {
-  await AsyncStorage.setItem(CONSUMED_KEY, JSON.stringify(product));
-}
-
-export async function loadConsumedProduct(): Promise<Product | null> {
-  const json = await AsyncStorage.getItem(CONSUMED_KEY);
-  if (json === null) {
-    return null;
-  }
-
-  const data: unknown = JSON.parse(json);
-  if (!isProduct(data)) {
-    throw new Error("Das aufgebrauchte Produkt ist ungültig.");
-  }
-  return data;
-}
-
-export async function clearConsumedProduct(): Promise<void> {
-  await AsyncStorage.removeItem(CONSUMED_KEY);
 }

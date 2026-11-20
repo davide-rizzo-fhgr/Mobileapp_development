@@ -1,12 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
-import {
-  clearConsumedProduct,
-  loadConsumedProduct,
-  loadProducts,
-  saveConsumedProduct,
-  saveProducts,
-} from "../storage/productStorage";
+import { loadProducts, saveProducts } from "../storage/productStorage";
 import type { LoadingState, Product } from "../types/Product";
 
 type ProductContextValue = {
@@ -20,6 +14,9 @@ type ProductContextValue = {
   deleteProduct: (id: string) => Promise<boolean>;
   undoConsume: () => Promise<boolean>;
 };
+
+// So lange lässt sich "Aufgebraucht" rückgängig machen.
+const UNDO_DURATION_MS = 8000;
 
 const ProductContext = createContext<ProductContextValue | null>(null);
 
@@ -41,15 +38,6 @@ export function ProductProvider({ children }: ProductProviderProps) {
         const storedProducts = await loadProducts();
         setProducts(storedProducts);
         setLoadingState("ready");
-
-        // Ein Fehler beim optionalen Rückgängig-Eintrag darf den Vorrat nicht blockieren.
-        try {
-          const consumed = await loadConsumedProduct();
-          const isInPantry = storedProducts.some((item) => item.id === consumed?.id);
-          setLastConsumed(isInPantry ? null : consumed);
-        } catch {
-          setLastConsumed(null);
-        }
       } catch (error) {
         // productStorage wirft verständliche Meldungen, die direkt angezeigt werden.
         setErrorMessage(error instanceof Error ? error.message : "Unbekannter Fehler");
@@ -58,6 +46,16 @@ export function ProductProvider({ children }: ProductProviderProps) {
     }
     load();
   }, [loadAttempt]); // erneut laden, wenn loadAttempt sich ändert
+
+  // Der Rückgängig-Hinweis verschwindet nach kurzer Zeit von selbst.
+  useEffect(() => {
+    if (lastConsumed === null) {
+      return;
+    }
+    const timer = setTimeout(() => setLastConsumed(null), UNDO_DURATION_MS);
+    // Aufräumen: Der alte Timer wird gestoppt, sobald sich lastConsumed wieder ändert.
+    return () => clearTimeout(timer);
+  }, [lastConsumed]);
 
   function retry() {
     setLoadingState("loading");
@@ -91,7 +89,6 @@ export function ProductProvider({ children }: ProductProviderProps) {
     const updated = products.filter((item) => item.id !== id);
 
     try {
-      await saveConsumedProduct(product);
       await saveProducts(updated);
       setProducts(updated);
       setLastConsumed(product);
@@ -124,16 +121,10 @@ export function ProductProvider({ children }: ProductProviderProps) {
       await saveProducts(updated);
       setProducts(updated);
       setLastConsumed(null);
+      return true;
     } catch {
       return false;
     }
-
-    try {
-      await clearConsumedProduct();
-    } catch {
-      // Der Vorrat ist bereits gespeichert. Beim nächsten Laden wird der Eintrag ignoriert.
-    }
-    return true;
   }
 
   return (

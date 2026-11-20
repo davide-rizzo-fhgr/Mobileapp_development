@@ -3,7 +3,7 @@ import { Alert, Pressable, StyleSheet, Text } from "react-native";
 import { colors } from "../constants/colors";
 import { useProducts } from "../context/ProductContext";
 
-// Erscheint auf Übersicht und Vorrat, solange ein aufgebrauchtes Produkt wiederherstellbar ist.
+// Erscheint auf Übersicht und Vorrat für einige Sekunden nach "Aufgebraucht".
 export default function UndoBanner() {
   const { lastConsumed, undoConsume } = useProducts();
 
