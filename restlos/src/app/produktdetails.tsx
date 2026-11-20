@@ -8,7 +8,7 @@ import ErrorView from "../components/ErrorView";
 import ProductImage from "../components/ProductImage";
 import { colors } from "../constants/colors";
 import { useProducts } from "../context/ProductContext";
-import { expiryLabel } from "../utils/date";
+import { expiryLabel, isExpiringSoon } from "../utils/date";
 
 export default function DetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -95,7 +95,9 @@ export default function DetailScreen() {
         <View style={styles.meta}>
           <Text style={styles.metaText}>Lagerort: {product.place}</Text>
           <Text style={styles.metaText}>Kategorie: {product.category}</Text>
-          <Text style={styles.warning}>{expiryLabel(product.expiryDate)}</Text>
+          <Text style={[styles.metaText, isExpiringSoon(product.expiryDate) && styles.warning]}>
+            {expiryLabel(product.expiryDate)}
+          </Text>
         </View>
         <View style={styles.spacer} />
         <ActionButton label="Aufgebraucht" onPress={handleConsume} />
@@ -152,7 +154,6 @@ const styles = StyleSheet.create({
   },
   warning: {
     color: colors.warning,
-    fontSize: 14,
   },
   spacer: {
     flex: 1,

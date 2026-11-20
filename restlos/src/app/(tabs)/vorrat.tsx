@@ -11,6 +11,7 @@ import UndoBanner from "../../components/UndoBanner";
 import { colors } from "../../constants/colors";
 import { useProducts } from "../../context/ProductContext";
 import type { Product } from "../../types/Product";
+import { sortByExpiryDate } from "../../utils/productList";
 
 type Filter = "Alle" | "Kühlschrank" | "Tiefkühler" | "Vorratsschrank";
 
@@ -24,10 +25,12 @@ export default function PantryScreen() {
   const [filter, setFilter] = useState<Filter>("Alle");
 
   const searchText = search.trim().toLowerCase();
-  const visibleProducts = products.filter(
-    (product) =>
-      product.name.toLowerCase().includes(searchText) &&
-      (filter === "Alle" || product.place === filter),
+  const visibleProducts = sortByExpiryDate(
+    products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(searchText) &&
+        (filter === "Alle" || product.place === filter),
+    ),
   );
 
   function handleOpen(id: string) {

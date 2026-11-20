@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { colors } from "../constants/colors";
 import type { Product } from "../types/Product";
-import { daysUntil, expiryLabel } from "../utils/date";
+import { expiryLabel, isExpiringSoon } from "../utils/date";
 import ProductImage from "./ProductImage";
 
 type ProductCardProps = {
@@ -13,7 +13,7 @@ type ProductCardProps = {
 
 // Die Karte navigiert nicht selbst. Sie meldet nur, welches Produkt gedrückt wurde.
 export default function ProductCard({ product, onPress, card }: ProductCardProps) {
-  const isSoon = daysUntil(product.expiryDate) <= 7;
+  const isSoon = isExpiringSoon(product.expiryDate);
 
   return (
     <Pressable

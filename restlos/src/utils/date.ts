@@ -7,6 +7,14 @@ export function daysUntil(date: string): number {
   return Math.round((Date.UTC(year, month - 1, day) - todayUtc) / 86400000);
 }
 
+// Ab so vielen Tagen vor dem MHD gilt ein Produkt als "bald aufbrauchen".
+export const SOON_DAYS = 3;
+
+// true, wenn das MHD überschritten ist oder in den nächsten SOON_DAYS Tagen liegt.
+export function isExpiringSoon(date: string): boolean {
+  return daysUntil(date) <= SOON_DAYS;
+}
+
 export function formatDate(date: string): string {
   const [year, month, day] = date.split("-");
   return `${day}.${month}.${year}`;

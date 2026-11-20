@@ -8,15 +8,16 @@ import ProductCard from "../../components/ProductCard";
 import UndoBanner from "../../components/UndoBanner";
 import { colors } from "../../constants/colors";
 import { useProducts } from "../../context/ProductContext";
-import { daysUntil } from "../../utils/date";
+import { isExpiringSoon, SOON_DAYS } from "../../utils/date";
+import { sortByExpiryDate } from "../../utils/productList";
 
 export default function OverviewScreen() {
   const { products, loadingState, errorMessage, retry } = useProducts();
 
   // Abgeleiteter Wert: wird bei jedem Render berechnet und nicht im State gespeichert.
-  const urgentProducts = products
-    .filter((product) => daysUntil(product.expiryDate) <= 7)
-    .sort((a, b) => a.expiryDate.localeCompare(b.expiryDate));
+  const urgentProducts = sortByExpiryDate(
+    products.filter((product) => isExpiringSoon(product.expiryDate)),
+  );
 
   function handleOpen(id: string) {
     router.push({ pathname: "/produktdetails", params: { id } });
@@ -43,7 +44,7 @@ export default function OverviewScreen() {
         {loadingState === "ready" && (
           <ScrollView style={styles.center} contentContainerStyle={styles.cards}>
             {urgentProducts.length === 0 && (
-              <Text style={styles.empty}>Aktuell läuft nichts bald ab.</Text>
+              <Text style={styles.empty}>In den nächsten {SOON_DAYS} Tagen läuft nichts ab.</Text>
             )}
             {urgentProducts.map((product) => (
               <View key={product.id} style={styles.card}>
