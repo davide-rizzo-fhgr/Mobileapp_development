@@ -55,7 +55,7 @@ Weitere Punkte:
 
 ## Demo-Video
 
-[Restlos_Demo.mov](docs/video/Restlos_Demo.mov) (3:55 Min.)
+[Restlos_Demo.mov](docs/Video/Restlos_Demo.mov) (3:55 Min.)
 
 ## Setup
 
