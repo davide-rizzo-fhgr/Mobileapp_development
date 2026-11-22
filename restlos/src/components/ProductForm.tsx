@@ -14,6 +14,7 @@ import {
 import ActionButton from "./ActionButton";
 import ChipGroup from "./ChipGroup";
 import FormField from "./FormField";
+import PhotoPicker from "./PhotoPicker";
 
 const UNITS = ["Stück", "Becher", "Packung", "g", "kg", "ml", "l"];
 const PLACES: StoragePlace[] = ["Kühlschrank", "Tiefkühler", "Vorratsschrank"];
@@ -36,6 +37,7 @@ export default function ProductForm({ existing, onSave }: ProductFormProps) {
   const [place, setPlace] = useState<StoragePlace>(existing?.place ?? "Kühlschrank");
   const [category, setCategory] = useState<Category>(existing?.category ?? "Sonstiges");
   const [date, setDate] = useState(existing ? formatDate(existing.expiryDate) : "");
+  const [photoUri, setPhotoUri] = useState<string | undefined>(existing?.photoUri);
 
   // Ein Fehler wird erst angezeigt, nachdem das Feld einmal verlassen wurde.
   // Beim Bearbeiten sind alle Felder bereits ausgefüllt und gelten als besucht.
@@ -66,7 +68,7 @@ export default function ProductForm({ existing, onSave }: ProductFormProps) {
       place,
       category,
       expiryDate,
-      ...(existing?.photoUri ? { photoUri: existing.photoUri } : {}),
+      photoUri,
     };
 
     setSaving(true);
@@ -84,6 +86,8 @@ export default function ProductForm({ existing, onSave }: ProductFormProps) {
       keyboardShouldPersistTaps="handled"
       automaticallyAdjustKeyboardInsets
     >
+      <PhotoPicker photoUri={photoUri} onChange={setPhotoUri} />
+
       <FormField
         label="Name"
         value={name}
