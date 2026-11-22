@@ -4,6 +4,20 @@ Restlos ist eine mobile App zur Verwaltung des eigenen Lebensmittelvorrats. Sie 
 
 Semesterprojekt im Modul Mobile App Development (FH Graubünden, HS26). Einzelarbeit von Davide Rizzo.
 
+## Inhalt
+
+1. [Problem und Zielgruppe](#problem-und-zielgruppe)
+2. [Funktionen](#funktionen)
+3. [Screenshots](#screenshots)
+4. [Demo-Video](#demo-video)
+5. [Setup](#setup)
+6. [Scripts](#scripts)
+7. [Architektur](#architektur)
+8. [Annahmen und Grenzen](#annahmen-und-grenzen)
+9. [Bekannte Issues](#bekannte-issues)
+10. [GUI-Entwurf](#gui-entwurf)
+11. [Verantwortlichkeiten und Hilfsmittel](#verantwortlichkeiten-und-hilfsmittel)
+
 ## Problem und Zielgruppe
 
 Studierende mit eigenem Haushalt kaufen regelmässig Lebensmittel ein, verlieren aber im Alltag den Überblick über den Vorrat. Produkte geraten in Vergessenheit, bis das Mindesthaltbarkeitsdatum (MHD) überschritten ist.
@@ -26,11 +40,22 @@ Weitere Punkte:
 - «Löschen» verlangt eine Bestätigung.
 - Lade-, Fehler- und Leerzustände sind in allen Ansichten berücksichtigt.
 
+### Hauptablauf
+
+1. Übersicht öffnen und «Lebensmittel erfassen» wählen.
+2. Formular ausfüllen und speichern. Die App zeigt die Produktdetails.
+3. Zurück zur Übersicht, in den Tab «Vorrat» wechseln und ein Produkt öffnen.
+4. «Aufgebraucht» wählen. Das Produkt verschwindet aus dem Vorrat und lässt sich kurz wiederherstellen.
+
 ## Screenshots
 
 | Übersicht | Vorrat | Erfassen | Details |
 |---|---|---|---|
 | ![Übersicht](docs/screenshots/01-uebersicht.png) | ![Vorrat](docs/screenshots/02-vorrat.png) | ![Erfassen](docs/screenshots/03-erfassen.png) | ![Details](docs/screenshots/04-details.png) |
+
+## Demo-Video
+
+[Restlos_Demo.mov](docs/video/Restlos_Demo.mov) (3:55 Min.)
 
 ## Setup
 
@@ -59,6 +84,50 @@ Alle Befehle werden im Ordner `restlos` ausgeführt.
 
 ## Architektur
 
+### Architektur-Skizze
+
+```mermaid
+flowchart LR
+  subgraph Screens["app/ (Screens)"]
+    U["Übersicht"]
+    V["Vorrat"]
+    E["Erfassen / Bearbeiten"]
+    D["Produktdetails"]
+  end
+  K["components/<br/>ProductCard, ProductForm,<br/>FormField, ChipGroup, …"]
+  C["context/ProductContext<br/>products, loadingState,<br/>saveProduct, consumeProduct,<br/>deleteProduct, undoConsume"]
+  S["storage/productStorage<br/>loadProducts, saveProducts"]
+  A[("AsyncStorage")]
+  T["utils/<br/>Datum, Sortierung,<br/>Formularprüfung"]
+
+  Screens -- "Props" --> K
+  K -- "Callbacks" --> Screens
+  Screens -- "useProducts()" --> C
+  C --> S
+  S --> A
+  Screens --> T
+  K --> T
+```
+
+### Navigation
+
+```mermaid
+flowchart TD
+  R["Stack (app/_layout.tsx)"] --> Tabs["Tabs (app/(tabs)/_layout.tsx)"]
+  Tabs --> U["Übersicht"]
+  Tabs --> V["Vorrat"]
+  U -- "push" --> E["Erfassen"]
+  V -- "push" --> E
+  U -- "push" --> D["Produktdetails"]
+  V -- "push" --> D
+  E -- "replace nach Speichern" --> D
+  D -- "push" --> B["Bearbeiten"]
+  B -- "back" --> D
+  D -- "back" --> Tabs
+```
+
+### Ordnerstruktur
+
 ```text
 restlos/src
 ├── app/                      Screens und Navigation (Expo Router)
@@ -68,7 +137,7 @@ restlos/src
 │   ├── (tabs)/vorrat.tsx     Vorrat
 │   ├── erfassen.tsx          Erfassen / Bearbeiten
 │   └── produktdetails.tsx    Produktdetails
-├── components/               Wiederverwendbare UI-Bausteine (nur Props und Callbacks)
+├── components/               Wiederverwendbare UI-Bausteine
 ├── context/ProductContext    Gemeinsamer State: Produkte, Ladezustand, Aktionen
 ├── storage/productStorage    Lesen und Schreiben mit AsyncStorage
 ├── utils/                    Datumsfunktionen, Sortierung, Formularprüfung
@@ -76,17 +145,18 @@ restlos/src
 └── constants/colors.ts       Farben
 ```
 
-Datenfluss:
+### State-Konzept
 
-```text
-AsyncStorage ◀──▶ productStorage ◀──▶ ProductContext ──▶ Screens ──▶ Komponenten
-                  (laden/speichern)   (State, Aktionen)   ▲              │
-                                                          └── Callbacks ─┘
-```
+| State | Besitzer | Begründung |
+|---|---|---|
+| Produktliste, Ladezustand, Fehlermeldung, zuletzt aufgebrauchtes Produkt | `ProductProvider` | Wird von allen vier Ansichten gebraucht. |
+| Suchtext und Lagerort-Filter | Screen «Vorrat» | Reiner UI-State dieser Ansicht. |
+| Formulareingaben und besuchte Felder | `ProductForm` | Der Screen erhält erst das geprüfte Produkt über `onSave`. |
+| Gefilterte und sortierte Listen, Formularfehler | kein State | Abgeleitete Werte, werden bei jedem Render berechnet. |
 
-- **Ein Besitzer pro State:** Der `ProductProvider` besitzt die Produktliste. Die Screens lesen und ändern sie nur über `useProducts()`. Suchtext, Filter und Formulareingaben bleiben lokaler State des jeweiligen Screens.
-- **Trennung von UI und Logik:** Speichern (`storage`), Prüfen und Rechnen (`utils`) und Darstellung (`components`) liegen in getrennten Dateien.
-- **Navigation:** Übersicht und Vorrat sind Tabs. Formular und Details liegen im Stack darüber und haben eine Zurück-Navigation im Header.
+- **Trennung von UI und Logik:** Speichern (`storage`), Prüfen und Rechnen (`utils`) und Darstellung (`components`) liegen in getrennten Dateien. Die Komponenten erhalten Daten über Props und melden Ereignisse über Callbacks.
+- **Laden und Speichern:** Der Provider lädt beim Start einmal aus AsyncStorage. Gespeichert wird in den Aktionen und erst, nachdem geladen wurde, damit eine leere Liste nie den Vorrat überschreibt.
+- **Fehlerbehandlung:** Der Storage Layer unterscheidet Lesefehler, beschädigtes JSON und falsche Struktur und meldet sie verständlich. Die Ansichten zeigen die Meldung mit «Erneut versuchen».
 
 ## Annahmen und Grenzen
 
